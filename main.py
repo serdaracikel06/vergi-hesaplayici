@@ -6,19 +6,19 @@ st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 # --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
 st.info("**T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
 
-# --- 🚀 YENİ: BAŞLIK VE KÜÇÜK İKON HİZALAMA PANELİ ---
-# Başlık ve görseli yan yana getirmek için iki sütun oluşturuyoruz
-col_title, col_icon = st.columns([5, 1], vertical_alignment="center")
+# --- 🚀 GÜNCELLENDİ: BAŞLIK SOLUNA KÜÇÜK İKON HİZALAMA PANELİ ---
+# Görselin önce gelmesi için sütun sıralamasını (oranlarını) değiştirdik
+col_icon, col_title = st.columns([1, 6], vertical_alignment="center")
+
+with col_icon:
+    # Resim artık başlığın SOLUNDA ve abaküs emojisi büyüklüğünde
+    try:
+        st.image("grafik.png", width=55)
+    except:
+        pass
 
 with col_title:
     st.title("Gelir Vergisi Hesaplayıcı")
-
-with col_icon:
-    # Resim artık başlığın sağında, küçük bir logo/ikon boyutunda (genişlik: 65 piksel)
-    try:
-        st.image("grafik.png", width=65)
-    except:
-        pass
 
 st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
 
