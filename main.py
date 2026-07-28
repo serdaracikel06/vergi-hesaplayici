@@ -4,17 +4,37 @@ import streamlit as st
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered", page_icon="🧮")
 
 st.title("🧮 Gelir Vergisi Hesaplayıcı")
-st.caption("2026 Yılı Güncel Marjinal Vergi Tarifesi (Efektif Oran Destekli)")
+st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
 
-# Durum Yönetimi: Tarife Listesini Hafızada Tutma (%45 Güncellemesi ile)
-if "tarife" not in st.session_state:
-    st.session_state.tarife = [
+# --- GELİR TÜRÜ SEÇİMİ ---
+gelir_turu = st.radio(
+    "Lütfen Gelir Türünü Seçiniz (Tarife otomatik güncellenir):",
+    ["Ücret Dışı Gelirler (Esnaf, Kira, Şirket vb.)", "Ücret Gelirleri (Maaşlı Çalışanlar)"],
+    horizontal=True
+)
+
+# Seçilen Gelir Türüne Göre Resmi 2026 Sabit Tarifeleri
+if gelir_turu == "Ücret Gelirleri (Maaşlı Çalışanlar)":
+    varsayilan_tarife = [
         {"oran": 15.0, "sinir": 190000.0},
         {"oran": 20.0, "sinir": 400000.0},
-        {"oran": 27.0, "sinir": 1000000.0},
+        {"oran": 27.0, "sinir": 1500000.0},  # Ücretlilerde 3. dilim sınırı 1.5 Milyon TL
         {"oran": 35.0, "sinir": 5300000.0},
-        {"oran": 45.0, "sinir": 99999999999.0} # Son basamak %45 olarak güncellendi
+        {"oran": 40.0, "sinir": 99999999999.0} # Son dilim %40
     ]
+else:
+    varsayilan_tarife = [
+        {"oran": 15.0, "sinir": 190000.0},
+        {"oran": 20.0, "sinir": 400000.0},
+        {"oran": 27.0, "sinir": 1000000.0},  # Ücret dışı gelirlerde 3. dilim sınırı 1 Milyon TL
+        {"oran": 35.0, "sinir": 5300000.0},
+        {"oran": 40.0, "sinir": 99999999999.0} # Son dilim %40
+    ]
+
+# Durum Yönetimi: Kullanıcı geçiş yaptığında tarifeyi bellekten yenile
+if "son_secim" not in st.session_state or st.session_state.son_secim != gelir_turu:
+    st.session_state.tarife = varsayilan_tarife.copy()
+    st.session_state.son_secim = gelir_turu
 
 # --- 1. BÖLÜM: MATRAH GİRİŞİ VE HESAPLAMA ---
 st.subheader("1. Vergi Hesaplama Paneli")
@@ -28,16 +48,14 @@ taxinc = st.number_input(
     format="%.2f"
 )
 
-# En Kararlı Kademeli Matematiksel Hesaplama Algoritması
 tarife_list = st.session_state.tarife
 
-# İlk dilim vergisi baz alınarak başlanır
+# Doğru Kademeli Matematiksel Hesaplama Algoritması
 if taxinc > tarife_list[0]["sinir"]:
     tax = tarife_list[0]["sinir"] * (tarife_list[0]["oran"] / 100)
 else:
     tax = taxinc * (tarife_list[0]["oran"] / 100)
 
-# Üst dilimleri kümülatif sınır farklarına göre hesaplama
 for i in range(1, len(tarife_list)):
     prev_limit = tarife_list[i-1]["sinir"]
     current_limit = tarife_list[i]["sinir"]
@@ -71,21 +89,21 @@ st.divider()
 st.subheader("2. Vergi Tarifesi Düzenleme Paneli")
 
 # Mevcut Tarife Tablosu Gösterimi
-st.write("**Mevcut Aktif Vergi Tarifesi:**")
+st.write(f"**Aktif Tarife ({gelir_turu}):**")
 silme_secenekleri = []
 
 for i, d in enumerate(st.session_state.tarife):
     sinir_str = "Sınırsız" if d["sinir"] > 9999999999 else f"{d['sinir']:,.2f} TL".replace(",", "X").replace(".", ",").replace("X", ".")
     liste_metni = f"% {d['oran']:g} ➡️ {sinir_str} limitine kadar"
     st.write(f"• **{liste_metni}**")
-    # Silme menüsünde görünecek şekilde seçeneklere ekle
+    # Tuple formatında (index, metin) ekliyoruz
     silme_secenekleri.append((i, liste_metni))
 
 st.write("")
 
 # Yeni Dilim Ekleme Formu
 with st.form("yeni_dilim", clear_on_submit=True):
-    st.write("**Yeni Bir Kademe/Dilim Ekle:**")
+    st.write("**Mevcut Tarifeye Yeni Bir Kademe Ekle:**")
     c1, c2 = st.columns(2)
     with c1:
         yeni_oran = st.number_input("Vergi Oranı (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0)
@@ -98,12 +116,12 @@ with st.form("yeni_dilim", clear_on_submit=True):
         st.toast("Yeni vergi dilimi başarıyla eklendi!", icon="✅")
         st.rerun()
 
-# KİLİTLENMEYEN GÜVENLİ SİLME ALANI
-st.write("**Bir Dilimi Tarifeden Kaldır:**")
-secilen_indeks_bilgisi = st.selectbox(
+# --- HATA RİSKİ OLMAYAN GÜVENLİ SİLME ALANI ---
+st.write("**Mevcut Tarifeden Bir Dilimi Kaldır:**")
+secilen_eleman = st.selectbox(
     "Silmek istediğiniz vergi dilimini seçin:", 
     options=silme_secenekleri, 
-    format_func=lambda x: x[1]
+    format_func=lambda x: x[1] # Ekranda sadece açıklama metni görünecek
 )
 
 col_btn1, col_btn2 = st.columns(2)
@@ -111,8 +129,8 @@ col_btn1, col_btn2 = st.columns(2)
 with col_btn1:
     if st.button("Seçili Dilimi Sil", type="primary"):
         if len(st.session_state.tarife) > 1:
-            # Seçilen tuple'ın ilk elemanı olan asıl indeksi alıyoruz
-            indeks_to_delete = secilen_indeks_bilgisi[0]
+            # Seçilen tuple'ın ilk elemanı olan gerçek indeksi güvenle siliyoruz
+            indeks_to_delete = secilen_eleman[0]
             st.session_state.tarife.pop(indeks_to_delete)
             st.toast("Seçili dilim tarifeden silindi!", icon="🗑️")
             st.rerun()
@@ -120,8 +138,7 @@ with col_btn1:
             st.error("Tarifede en az 1 vergi dilimi kalmalıdır!")
 
 with col_btn2:
-    # Tarifeyi İlk Haline Döndürme Butonu
-    if st.button("Tüm Tabloyu Sıfırla (2026 Varsayılan)"):
-        if "tarife" in st.session_state:
-            del st.session_state.tarife
+    if st.button("Mevcut Seçimi Sıfırla (Resmi Ayara Dön)"):
+        st.session_state.tarife = varsayilan_tarife.copy()
         st.rerun()
+
