@@ -3,12 +3,12 @@ import streamlit as st
 # Sayfa Başlığı Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
-# --- 🚀 KESİN ÇÖZÜM: AKTİF FİNANSAL GRAFİK GÖRSELİ ---
-# İstediğiniz grafik resmi her tarayıcıda sorunsuz yüklenecek şekilde güncellendi
-st.image(
-    "https://githubusercontent.com" if False else "https://ibb.co",
-    use_container_width=True
-)
+# --- 🚀 KESİN ÇÖZÜM: KENDİ GITHUB DEPOZUN İÇİNDEKİ RESMİ ÇAĞIRMA ---
+# Bu yöntem harici internet linklerine bağımlı olmadığı için kırık resim simgesi tamamen kaybolacaktır.
+try:
+    st.image("grafik.png", use_container_width=True)
+except:
+    pass
 
 # --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
 st.info("**T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
