@@ -3,6 +3,13 @@ import streamlit as st
 # Sayfa Başlığı ve Mobil Düzen Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered", page_icon="🧮")
 
+# --- 🚀 YENİ: BAŞTAKİ GRAFİK RESMİ ---
+# Gönderdiğiniz finansal analiz ve grafik görseli uygulamanın en tepesine yerleştirildi
+st.image(
+    "https://googleusercontent.com", 
+    use_container_width=True
+)
+
 st.title("🧮 Gelir Vergisi Hesaplayıcı")
 st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
 
@@ -140,7 +147,7 @@ with col_btn2:
         st.session_state.tarife = varsayilan_tarife.copy()
         st.rerun()
 
-# --- 🚀 YENİ: RESMİ GELİŞTİRİCİ İMZASI ---
+# --- RESMİ GELİŞTİRİCİ İMZASI ---
 st.write("")
 st.write("")
 st.divider()
