@@ -3,52 +3,12 @@ import streamlit as st
 # Sayfa Başlığı Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
-# CSS ile en tepedeki gereksiz boşlukları düzenliyoruz
-st.markdown(
-    """
-    <style>
-    .block-container {padding-top: 2rem;}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# --- 🚀 YENİ: RESMİ VE KURUMSAL BİLGİ PANELİ ---
+# Bozulma riski olan tüm dış resim ve HTML kodları temizlendi.
+st.info("🇹🇷 **T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
 
-# --- 🚀 GÖMÜLÜ FİNANSAL GRAFİK GÖRSELİ (KIRILMAZ/HER YERDE ÇALIŞIR) ---
-st.markdown(
-    """
-    <div style="text-align: center; margin-bottom: 25px; background-color: #ffffff; padding: 15px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05);">
-        <svg xmlns="http://w3.org" viewBox="0 0 800 350" width="100%" height="auto">
-            <!-- Arka Plan Grid Çizgileri -->
-            <line x1="100" y1="50" x2="700" y2="50" stroke="#f0f0f0" stroke-width="1"/>
-            <line x1="100" y1="110" x2="700" y2="110" stroke="#f0f0f0" stroke-width="1"/>
-            <line x1="100" y1="170" x2="700" y2="170" stroke="#f0f0f0" stroke-width="1"/>
-            <line x1="100" y1="230" x2="700" y2="230" stroke="#f0f0f0" stroke-width="1"/>
-            <line x1="100" y1="290" x2="700" y2="290" stroke="#eceff1" stroke-width="2"/>
-            
-            <!-- Dikey Bar Grafikleri (Sırasıyla Yükselen Dilimler) -->
-            <rect x="150" y="240" width="50" height="50" rx="4" fill="#ff8a80"/>
-            <rect x="250" y="200" width="50" height="90" rx="4" fill="#ffd54f"/>
-            <rect x="350" y="150" width="50" height="140" rx="4" fill="#4fc3f7"/>
-            <rect x="450" y="100" width="50" height="190" rx="4" fill="#81c784"/>
-            <rect x="550" y="60" width="50" height="230" rx="4" fill="#ba68c8"/>
-            
-            <!-- Büyüme ve Yükseliş Oku (Yeşil Ok) -->
-            <path d="M 120 270 Q 320 220 620 75" fill="none" stroke="#2e7d32" stroke-width="8" stroke-linecap="round"/>
-            <path d="M 620 75 L 580 75 M 620 75 L 610 115" fill="none" stroke="#2e7d32" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-            
-            <!-- Pasta Grafik Analiz Simgesi (Sağ Alt Köşe) -->
-            <circle cx="680" cy="240" r="45" fill="#4caf50"/>
-            <path d="M 680 240 L 680 195 A 45 45 0 0 1 725 240 Z" fill="#e91e63"/>
-            <path d="M 680 240 L 725 240 A 45 45 0 0 1 680 285 Z" fill="#ffeb3b"/>
-        </svg>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# Ana Kurumsal Başlık
+# Ana Temiz Başlık
 st.title("Gelir Vergisi Hesaplayıcı")
-st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
 
 # --- GELİR TÜRÜ SEÇİMİ ---
 gelir_turu = st.radio(
@@ -93,10 +53,11 @@ taxinc = st.number_input(
 
 tarife_list = st.session_state.tarife
 
-if taxinc > tarife_list["sinir"]:
-    tax = tarife_list["sinir"] * (tarife_list["oran"] / 100)
+# Doğru Kademeli Matematiksel Hesaplama Algoritması
+if taxinc > tarife_list[0]["sinir"]:
+    tax = tarife_list[0]["sinir"] * (tarife_list[0]["oran"] / 100)
 else:
-    tax = taxinc * (tarife_list["oran"] / 100)
+    tax = taxinc * (tarife_list[0]["oran"] / 100)
 
 for i in range(1, len(tarife_list)):
     prev_limit = tarife_list[i-1]["sinir"]
@@ -111,6 +72,7 @@ for i in range(1, len(tarife_list)):
 
 efektif_oran = (tax / taxinc) * 100 if taxinc > 0 else 0
 
+# Sonuçları Göstergeler (Metric) Halinde Listeleme
 col1, col2 = st.columns(2)
 with col1:
     st.metric(
