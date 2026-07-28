@@ -96,7 +96,6 @@ for i, d in enumerate(st.session_state.tarife):
     sinir_str = "Sınırsız" if d["sinir"] > 9999999999 else f"{d['sinir']:,.2f} TL".replace(",", "X").replace(".", ",").replace("X", ".")
     liste_metni = f"% {d['oran']:g} ➡️ {sinir_str} limitine kadar"
     st.write(f"• **{liste_metni}**")
-    # Tuple formatında (index, metin) ekliyoruz
     silme_secenekleri.append((i, liste_metni))
 
 st.write("")
@@ -116,12 +115,12 @@ with st.form("yeni_dilim", clear_on_submit=True):
         st.toast("Yeni vergi dilimi başarıyla eklendi!", icon="✅")
         st.rerun()
 
-# --- HATA RİSKİ OLMAYAN GÜVENLİ SİLME ALANI ---
+# --- GÜVENLİ SİLME ALANI ---
 st.write("**Mevcut Tarifeden Bir Dilimi Kaldır:**")
 secilen_eleman = st.selectbox(
     "Silmek istediğiniz vergi dilimini seçin:", 
     options=silme_secenekleri, 
-    format_func=lambda x: x[1] # Ekranda sadece açıklama metni görünecek
+    format_func=lambda x: x[1]
 )
 
 col_btn1, col_btn2 = st.columns(2)
@@ -129,7 +128,6 @@ col_btn1, col_btn2 = st.columns(2)
 with col_btn1:
     if st.button("Seçili Dilimi Sil", type="primary"):
         if len(st.session_state.tarife) > 1:
-            # Seçilen tuple'ın ilk elemanı olan gerçek indeksi güvenle siliyoruz
             indeks_to_delete = secilen_eleman[0]
             st.session_state.tarife.pop(indeks_to_delete)
             st.toast("Seçili dilim tarifeden silindi!", icon="🗑️")
@@ -142,3 +140,15 @@ with col_btn2:
         st.session_state.tarife = varsayilan_tarife.copy()
         st.rerun()
 
+# --- 🚀 YENİ: RESMİ GELİŞTİRİCİ İMZASI ---
+st.write("")
+st.write("")
+st.divider()
+st.markdown(
+    "<div style='text-align: center; color: #555555; font-size: 0.9em; font-family: sans-serif;'>"
+    "💻 Bu mobil uygulama <b><a href='mailto:serdar.acikel@gelirler.gov.tr' "
+    "style='color: #d32f2f; text-decoration: none; font-weight: bold;'>Serdar AÇIKEL</a></b> "
+    "tarafından geliştirilmiştir. | © 2026"
+    "</div>", 
+    unsafe_allow_html=True
+)
