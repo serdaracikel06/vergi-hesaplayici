@@ -3,18 +3,24 @@ import streamlit as st
 # Sayfa Başlığı Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
-# --- 🚀 KESİN ÇÖZÜM: KENDİ GITHUB DEPOZUN İÇİNDEKİ RESMİ ÇAĞIRMA ---
-# Bu yöntem harici internet linklerine bağımlı olmadığı için kırık resim simgesi tamamen kaybolacaktır.
-try:
-    st.image("grafik.png", use_container_width=True)
-except:
-    pass
-
 # --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
 st.info("**T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
 
-# Ana Temiz Başlık
-st.title("Gelir Vergisi Hesaplayıcı")
+# --- 🚀 YENİ: BAŞLIK VE KÜÇÜK İKON HİZALAMA PANELİ ---
+# Başlık ve görseli yan yana getirmek için iki sütun oluşturuyoruz
+col_title, col_icon = st.columns([5, 1], vertical_alignment="center")
+
+with col_title:
+    st.title("Gelir Vergisi Hesaplayıcı")
+
+with col_icon:
+    # Resim artık başlığın sağında, küçük bir logo/ikon boyutunda (genişlik: 65 piksel)
+    try:
+        st.image("grafik.png", width=65)
+    except:
+        pass
+
+st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
 
 # --- GELİR TÜRÜ SEÇİMİ ---
 gelir_turu = st.radio(
