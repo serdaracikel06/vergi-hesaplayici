@@ -3,9 +3,9 @@ import streamlit as st
 # Sayfa Başlığı Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
-# --- 🚀 YENİ: RESMİ VE KURUMSAL BİLGİ PANELİ ---
-# Bozulma riski olan tüm dış resim ve HTML kodları temizlendi.
-st.info("🇹🇷 **T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
+# --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
+# Kırık simgeye neden olan tüm emojiler temizlendi, sadece net ve profesyonel metin bırakıldı.
+st.info("**T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
 
 # Ana Temiz Başlık
 st.title("Gelir Vergisi Hesaplayıcı")
