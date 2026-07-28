@@ -6,18 +6,25 @@ st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 # --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
 st.info("**T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
 
-# --- 🚀 GÜNCELLENDİ: BAŞLIK SOLUNA KÜÇÜK İKON HİZALAMA PANELİ ---
-# Görselin önce gelmesi için sütun sıralamasını (oranlarını) değiştirdik
-col_icon, col_title = st.columns([1, 6], vertical_alignment="center")
-
-with col_icon:
-    # Resim artık başlığın SOLUNDA ve abaküs emojisi büyüklüğünde
-    try:
-        st.image("grafik.png", width=55)
-    except:
-        pass
-
-with col_title:
+# --- 🚀 KESİN ÇÖZÜM: RESİM VE YAZIYI BİRLEŞTİREN ÖZEL HTML PANELİ ---
+# Streamlit sütun yapısı yerine resmi deponuzdaki "grafik.png" dosyasını doğrudan yazıya kenetliyoruz.
+# Resim ve yazı arasına sadece 15 piksellik estetik bir boşluk bırakılmıştır.
+try:
+    # GitHub deponuzdaki resmin doğrudan internet (raw) linkini çekerek HTML içine gömüyoruz
+    raw_image_url = "https://githubusercontent.com"
+    
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-top: 10px; margin-bottom: 5px;">
+            <img src="{raw_image_url}" style="width: 55px; height: auto; object-fit: contain;">
+            <h1 style="margin: 0; padding: 0; font-family: 'Source Sans Pro', sans-serif; font-size: 2.5rem; font-weight: 700; color: #31333F; line-height: 1.2;">
+                Gelir Vergisi Hesaplayıcı
+            </h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+except:
     st.title("Gelir Vergisi Hesaplayıcı")
 
 st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
