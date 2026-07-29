@@ -3,17 +3,18 @@ import streamlit as st
 # Sayfa Başlığı Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
-# --- 🚀 GÜNCELLENDİ: PROTOKOLE UYGUN RESMİ BİLGİ PANELİ ---
-# Müdürlük yazısı, Bakanlık yazısının tam altına hiyerarşik düzende yerleştirildi
+# --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
+# Müdürlük yazısı bu kutudan çıkarılarak ana başlığın üstüne taşındı
 st.info(
     "🏛️ **T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n"
-    "**GELİR POLİTİKALARI İZLEME VE DEĞERLENDİRME MÜDÜRLÜĞÜ**\n\n"
     "193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi"
 )
 
-# --- TAM SOLA YASLI BAŞLIK ---
+# --- 🚀 GÜNCELLENDİ: BAŞLIK VE MÜDÜRLÜK HİZALAMA ALANI ---
+# Müdürlük yazısı ana başlığın hemen üstüne, daha küçük karakterle eklendi
+st.caption("GELİR POLİTİKALARI İZLEME VE DEĞERLENDİRME MÜDÜRLÜĞÜ")
 st.title("Gelir Vergisi Hesaplayıcı")
-st.caption("2026 Yılı Güncel Marjinal Vergi Tarifesi (Efektif Oran Destekli)")
+st.write("")
 
 # --- GELİR TÜRÜ SEÇİMİ ---
 gelir_turu = st.radio(
