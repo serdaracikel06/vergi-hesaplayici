@@ -51,6 +51,8 @@ if "hesaplanan_vergi" not in st.session_state:
     st.session_state.hesaplanan_vergi = 0.0
 if "hesaplanan_efektif" not in st.session_state:
     st.session_state.hesaplanan_efektif = 0.0
+if "kutu_anahtari" not in st.session_state:
+    st.session_state.kutu_anahtari = 0
 
 # --- 1. BÖLÜM: MATRAH GİRİŞİ VE HESAPLAMA ---
 st.subheader("1. Vergi Hesaplama Paneli")
@@ -58,23 +60,22 @@ st.subheader("1. Vergi Hesaplama Paneli")
 # Mevcut değeri Türkçe formatta string'e dönüştürüyoruz
 varsayilan_metin = f"{st.session_state.matrah_degeri:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-# Kullanıcı veriyi girer
-user_text = st.text_input(
+# 🔄 KESİN ÇÖZÜM: Dinamik element yenileme alanı (st.empty)
+# Bu alan, her hesapla butonuna basıldığında kutuyu yok edip içindeki yazıyı formatlı haliyle yeniden çizer.
+kutu_alani = st.empty()
+
+user_text = kutu_alani.text_input(
     "Hesaplanacak Vergi Matrahı (TL):",
     value=varsayilan_metin,
-    key="matrah_input_field",
+    key=f"matrah_input_{st.session_state.kutu_anahtari}",
     help="Sayıyı düz veya noktalı yazabilirsiniz. Hesapla butonuna bastığınızda otomatik formatlanacaktır."
 )
 
 # Hesaplama ve Formatlama Butonu
 if st.button("HESAPLA", type="secondary"):
     try:
-        # Metni temizle ve float'a çevir
+        # Girdiyi temizle
         clean_val = user_text.replace(".", "").replace(",", ".")
-        # Eğer kullanıcı kuruşsuz yazdıysa (örn: 3000000.00 yerine text parse hatası olmaması için)
-        if clean_val.count('.') > 1:
-            clean_val = clean_val.replace('.', '', clean_val.count('.') - 1)
-        
         taxinc = float(clean_val)
         st.session_state.matrah_degeri = taxinc
         
@@ -98,6 +99,9 @@ if st.button("HESAPLA", type="secondary"):
         
         st.session_state.hesaplanan_vergi = tax
         st.session_state.hesaplanan_efektif = (tax / taxinc) * 100 if taxinc > 0 else 0
+        
+        # 🔄 Kutunun ID'sini değiştirerek tarayıcıyı eski (düz) girdiyi unutmaya ve yeni (noktalı) değeri çizmeye zorluyoruz.
+        st.session_state.kutu_anahtari += 1
         st.rerun()
         
     except ValueError:
