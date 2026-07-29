@@ -8,7 +8,7 @@ st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 st.info(
     "🏛️ **T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n"
      "193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi"\n\n"
-    "**GELİR POLİTİKALARI İZLEME VE DEĞERLENDİRME MÜDÜRLÜĞÜ**"
+    "**GELİR POLİTİKALARI İZLEME VE DEĞERLENDİRME MÜDÜRLÜĞÜ**\n\n"
 )
 
 # --- TAM SOLA YASLI BAŞLIK ---
