@@ -6,7 +6,7 @@ st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 # --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
 st.info("**T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
 
-# --- RESMISIZ VE TAM SOLA YASLI BAŞLIK ---
+# --- RESMİSİZ VE TAM SOLA YASLI BAŞLIK ---
 st.title("Gelir Vergisi Hesaplayıcı")
 st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
 
@@ -43,14 +43,25 @@ if "son_secim" not in st.session_state or st.session_state.son_secim != gelir_tu
 # --- 1. BÖLÜM: MATRAH GİRİŞİ VE HESAPLAMA ---
 st.subheader("1. Vergi Hesaplama Paneli")
 
-# 🔄 GÜNCELLENDİ: Kullanıcının giriş yaparken de nokta ve virgülü doğru görmesi sağlandı
-taxinc = st.number_input(
-    "Hesaplanacak Vergi Matrahı (TL):", 
-    min_value=0.0, 
-    value=500000.0, 
-    step=1000.0,
-    format="%.2f"
+# 🔄 TÜRKÇE FORMATLI GİRİŞ SİSTEMİ (YENİ)
+# Kullanıcının girdiği sayıyı anında noktalı ve virgüllü formata maskeleyen akıllı kutu
+if "raw_input" not in st.session_state:
+    st.session_state.raw_input = "500000"
+
+user_text = st.text_input(
+    "Hesaplanacak Vergi Matrahı (TL):",
+    value=f"{float(st.session_state.raw_input.replace('.', '').replace(',', '.')):,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+    key="matrah_text_input",
+    help="Sayıları düz yazabilirsiniz, sistem otomatik olarak nokta ve virgül ekleyecektir."
 )
+
+# Temiz matematiksel değeri arka plana hazırlama
+try:
+    clean_val = user_text.replace(".", "").replace(",", ".")
+    taxinc = float(clean_val)
+    st.session_state.raw_input = clean_val
+except ValueError:
+    taxinc = 0.0
 
 tarife_list = st.session_state.tarife
 
@@ -73,7 +84,7 @@ for i in range(1, len(tarife_list)):
 
 efektif_oran = (tax / taxinc) * 100 if taxinc > 0 else 0
 
-# 🔄 GÜNCELLENDİ: Binlik ayırıcı nokta (.), ondalık ayırıcı virgül (,) yapıldı
+# Türk finans standartlarında çıktı maskeleme
 sonuc_formatli = f"{tax:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 efektif_formatli = f"{efektif_oran:.2f}".replace(".", ",")
 
@@ -99,7 +110,6 @@ st.write(f"**Aktif Tarife ({gelir_turu}):**")
 silme_secenekleri = {}
 
 for i, d in enumerate(st.session_state.tarife):
-    # 🔄 GÜNCELLENDİ: Tablo dökümündeki binlik ayırıcılar da noktaya çevrildi
     sinir_str = "Sınırsız" if d["sinir"] > 9999999999 else f"{d['sinir']:,.2f} TL".replace(",", "X").replace(".", ",").replace("X", ".")
     liste_metni = f"% {d['oran']:g} ➡️ {sinir_str} limitine kadar"
     st.write(f"• **{liste_metni}**")
