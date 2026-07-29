@@ -3,12 +3,17 @@ import streamlit as st
 # Sayfa Başlığı Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
-# --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
-st.info("**T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi")
+# --- 🚀 GÜNCELLENDİ: PROTOKOLE UYGUN RESMİ BİLGİ PANELİ ---
+# Müdürlük yazısı, Bakanlık yazısının tam altına hiyerarşik düzende yerleştirildi
+st.info(
+    "🏛️ **T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n"
+    "**GELİR POLİTİKALARI İZLEME VE DEĞERLENDİRME MÜDÜRLÜĞÜ**\n\n"
+    "193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi"
+)
 
-# --- RESMİSİZ VE TAM SOLA YASLI BAŞLIK ---
+# --- TAM SOLA YASLI BAŞLIK ---
 st.title("Gelir Vergisi Hesaplayıcı")
-st.caption("193 Sayılı Kanun Madde 103 — 2026 Resmi Gelir Vergisi Tarifesi")
+st.caption("2026 Yılı Güncel Marjinal Vergi Tarifesi (Efektif Oran Destekli)")
 
 # --- GELİR TÜRÜ SEÇİMİ ---
 gelir_turu = st.radio(
@@ -109,7 +114,7 @@ for i, d in enumerate(st.session_state.tarife):
 
 st.write("")
 
-# 🔄 GÜNCELLENDİ: Yeni Dilim Ekleme Alanındaki Sayı Girişi de Metin Girişine Çevrildi
+# Yeni Dilim Ekleme Alanındaki Sayı Girişi
 if "raw_yeni_sinir" not in st.session_state:
     st.session_state.raw_yeni_sinir = "190000"
 
@@ -119,7 +124,6 @@ with st.form("yeni_dilim", clear_on_submit=True):
     with c1:
         yeni_oran = st.number_input("Vergi Oranı (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0)
     with c2:
-        # Sınır giriş alanı da artık noktalı ve virgüllü formatı destekliyor
         yeni_sinir_text = st.text_input(
             "Dilim Üst Sınırı (TL)", 
             value=f"{float(st.session_state.raw_yeni_sinir.replace('.', '').replace(',', '.')):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
