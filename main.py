@@ -43,8 +43,7 @@ if "son_secim" not in st.session_state or st.session_state.son_secim != gelir_tu
 # --- 1. BÖLÜM: MATRAH GİRİŞİ VE HESAPLAMA ---
 st.subheader("1. Vergi Hesaplama Paneli")
 
-# 🔄 TÜRKÇE FORMATLI GİRİŞ SİSTEMİ (YENİ)
-# Kullanıcının girdiği sayıyı anında noktalı ve virgüllü formata maskeleyen akıllı kutu
+# TÜRKÇE FORMATLI ANA MATRAH GİRİŞ SİSTEMİ
 if "raw_input" not in st.session_state:
     st.session_state.raw_input = "500000"
 
@@ -55,7 +54,6 @@ user_text = st.text_input(
     help="Sayıları düz yazabilirsiniz, sistem otomatik olarak nokta ve virgül ekleyecektir."
 )
 
-# Temiz matematiksel değeri arka plana hazırlama
 try:
     clean_val = user_text.replace(".", "").replace(",", ".")
     taxinc = float(clean_val)
@@ -84,22 +82,16 @@ for i in range(1, len(tarife_list)):
 
 efektif_oran = (tax / taxinc) * 100 if taxinc > 0 else 0
 
-# Türk finans standartlarında çıktı maskeleme
+# Türk finans standartlarında çıktı formatlama
 sonuc_formatli = f"{tax:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 efektif_formatli = f"{efektif_oran:.2f}".replace(".", ",")
 
-# Sonuçları Göstergeler (Metric) Halinde Listeleme
+# Sonuç Göstergeleri
 col1, col2 = st.columns(2)
 with col1:
-    st.metric(
-        label="Ödenecek Toplam Vergi", 
-        value=f"{sonuc_formatli} TL"
-    )
+    st.metric(label="Ödenecek Toplam Vergi", value=f"{sonuc_formatli} TL")
 with col2:
-    st.metric(
-        label="Efektif Vergi Oranı", 
-        value=f"% {efektif_formatli}"
-    )
+    st.metric(label="Efektif Vergi Oranı", value=f"% {efektif_formatli}")
 
 st.divider()
 
@@ -117,19 +109,35 @@ for i, d in enumerate(st.session_state.tarife):
 
 st.write("")
 
+# 🔄 GÜNCELLENDİ: Yeni Dilim Ekleme Alanındaki Sayı Girişi de Metin Girişine Çevrildi
+if "raw_yeni_sinir" not in st.session_state:
+    st.session_state.raw_yeni_sinir = "190000"
+
 with st.form("yeni_dilim", clear_on_submit=True):
     st.write("**Mevcut Tarifeye Yeni Bir Kademe Ekle:**")
     c1, c2 = st.columns(2)
     with c1:
         yeni_oran = st.number_input("Vergi Oranı (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0)
     with c2:
-        yeni_sinir = st.number_input("Dilim Üst Sınırı (TL)", min_value=0.0, value=190000.0, step=10000.0)
+        # Sınır giriş alanı da artık noktalı ve virgüllü formatı destekliyor
+        yeni_sinir_text = st.text_input(
+            "Dilim Üst Sınırı (TL)", 
+            value=f"{float(st.session_state.raw_yeni_sinir.replace('.', '').replace(',', '.')):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        )
     
     if st.form_submit_button("Listeye Ekle"):
-        st.session_state.tarife.append({"oran": yeni_oran, "sinir": yeni_sinir})
-        st.session_state.tarife.sort(key=lambda x: x["sinir"])
-        st.toast("Yeni vergi dilimi başarıyla eklendi!", icon="✅")
-        st.rerun()
+        try:
+            clean_yeni_sinir = yeni_sinir_text.replace(".", "").replace(",", ".")
+            yeni_sinir = float(clean_yeni_sinir)
+            st.session_state.raw_yeni_sinir = clean_yeni_sinir
+            
+            if yeni_oran >= 0 and yeni_sinir > 0:
+                st.session_state.tarife.append({"oran": yeni_oran, "sinir": yeni_sinir})
+                st.session_state.tarife.sort(key=lambda x: x["sinir"])
+                st.toast("Yeni vergi dilimi başarıyla eklendi!", icon="✅")
+                st.rerun()
+        except ValueError:
+            st.error("Lütfen geçerli bir sınır değeri giriniz!")
 
 st.write("**Mevcut Tarifeden Bir Dilimi Kaldır:**")
 secilen_metin = st.selectbox(
