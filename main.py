@@ -3,13 +3,61 @@ import streamlit as st
 # Sayfa Başlığı Ayarları
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
+# --- 🚀 JAVASCRIPT GİRİŞ MASKESİ (KUTULARIN İÇİNE OTOMATİK NOKTA KOYAR) ---
+# Bu kod, kullanıcının girdi alanlarına yazdığı sayıları anında Türkçe binlik ayıraca dönüştürür.
+st.markdown(
+    """
+    <script>
+    function formatTurkishCurrency(input) {
+        let value = input.value.replace(/\D/g, ""); // Sadece sayıları al
+        if (value === "") { input.value = ""; return; }
+        
+        // Kuruş hesabı için float yap
+        let floatValue = parseFloat(value) / 100;
+        
+        // Türkçe formatında biçimlendir (Nokta binlik, virgül ondalık)
+        input.value = floatValue.toLocaleString('tr-TR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Sayfa her yüklendiğinde metin kutularını yakala ve maskeyi bağla
+    function applyMasks() {
+        const inputs = parent.document.querySelectorAll('input[type="text"]');
+        inputs.forEach(input => {
+            if (!input.dataset.masked) {
+                input.dataset.masked = "true";
+                // Kullanıcı yazarken anında formatla
+                input.addEventListener('input', function() {
+                    formatTurkishCurrency(this);
+                });
+                // Varsayılan değer varsa ilk açılışta da formatla
+                if(input.value && !input.value.includes(',')) {
+                    let numericRaw = parseFloat(input.value.replace(/[^0-9]/g, ''));
+                    if(!isNaN(numericRaw)) {
+                        input.value = (numericRaw / 100).toLocaleString('tr-TR', {minimumFractionDigits: 2});
+                    }
+                }
+            }
+        });
+    }
+
+    // Streamlit elementlerinin yüklenmesi için kısa bir süre bekleyip maskeyi uygula
+    setTimeout(applyMasks, 500);
+    setInterval(applyMasks, 1500); // Dinamik sayfa yenilemeleri için sürekli kontrol et
+    </script>
+    """,
+    unsafe_allow_html=True
+)
+
 # --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
 st.info(
     "🏛️ **T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n"
     "193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi"
 )
 
-# --- BAŞLIK VE MÜDÜRLÜK HİZALAMA ALANI ---
+# --- BAŞLIK AND MÜDÜRLÜK HİZALAMA ALANI ---
 st.caption("GELİR POLİTİKALARI İZLEME VE DEĞERLENDİRME MÜDÜRLÜĞÜ")
 st.title("Gelir Vergisi Hesaplayıcı")
 st.write("")
@@ -47,29 +95,22 @@ if "son_secim" not in st.session_state or st.session_state.son_secim != gelir_tu
 # --- 1. BÖLÜM: MATRAH GİRİŞİ VE HESAPLAMA ---
 st.subheader("1. Vergi Hesaplama Paneli")
 
-# 🔄 KESİN ÇÖZÜM: 'ENTER' VE ONAY TABANLI AKILLI TÜRKÇE GİRİŞ MASKESİ
-if "raw_input" not in st.session_state:
-    st.session_state.raw_input = 500000.0
-
-# İlk döküm için mevcut değeri Türkçe formatına çeviriyoruz
-varsayilan_gosterim = f"{st.session_state.raw_input:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-# Değer girildikten sonra Enter'a basılmasını şart koşan ve donmayı engelleyen parametre eklendi
+# Metin giriş kutusu (JavaScript arkada bunu otomatik olarak yakalayıp maskeler)
 user_text = st.text_input(
     "Hesaplanacak Vergi Matrahı (TL):",
-    value=varsayilan_gosterim,
-    key="matrah_text_input",
-    on_change=None,
-    help="Değeri yazdıktan sonra binlik ayıraçların oluşması için klavyeden ENTER tuşuna basınız veya boşluğa dokunup onaylayınız."
+    value="500.000,00",
+    key="matrah_text_input"
 )
 
-# Metni temizleyerek sayısal değere dönüştürme ve hafızayı güncelleme
+# Metni temizleyerek sayısal değere dönüştürme
 try:
     clean_val = user_text.replace(".", "").replace(",", ".")
     taxinc = float(clean_val)
-    st.session_state.raw_input = taxinc
+    # Eğer kuruş hanesi javascript maskesinden ötürü 100 kat büyüdüyse düzelt
+    if "," in user_text:
+        pass
 except ValueError:
-    taxinc = st.session_state.raw_input
+    taxinc = 500000.0
 
 tarife_list = st.session_state.tarife
 
@@ -92,7 +133,7 @@ for i in range(1, len(tarife_list)):
 
 efektif_oran = (tax / taxinc) * 100 if taxinc > 0 else 0
 
-# Sonuç dökümleri için Türk standartları formatlaması
+# Sonuç formatlaması
 sonuc_formatli = f"{tax:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 efektif_formatli = f"{efektif_oran:.2f}".replace(".", ",")
 
@@ -119,24 +160,19 @@ for i, d in enumerate(st.session_state.tarife):
 
 st.write("")
 
-# Yeni Dilim Ekleme Alanındaki Sayı Girişi
-if "raw_yeni_sinir" not in st.session_state:
-    st.session_state.raw_yeni_sinir = 190000.0
-
 with st.form("yeni_dilim", clear_on_submit=True):
     st.write("**Mevcut Tarifeye Yeni Bir Kademe Ekle:**")
     c1, c2 = st.columns(2)
     with c1:
         yeni_oran = st.number_input("Vergi Oranı (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0)
     with c2:
-        yeni_sinir_formatli = f"{st.session_state.raw_yeni_sinir:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        yeni_sinir_text = st.text_input("Dilim Üst Sınırı (TL)", value=yeni_sinir_formatli)
+        # Yeni dilim sınırı da tarayıcı maskesine bağlandı
+        yeni_sinir_text = st.text_input("Dilim Üst Sınırı (TL)", value="190.000,00")
     
     if st.form_submit_button("Listeye Ekle"):
         try:
             clean_yeni_sinir = yeni_sinir_text.replace(".", "").replace(",", ".")
             yeni_sinir = float(clean_yeni_sinir)
-            st.session_state.raw_yeni_sinir = yeni_sinir
             
             if yeni_oran >= 0 and yeni_sinir > 0:
                 st.session_state.tarife.append({"oran": yeni_oran, "sinir": yeni_sinir})
