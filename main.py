@@ -44,74 +44,69 @@ if "son_secim" not in st.session_state or st.session_state.son_secim != gelir_tu
     st.session_state.tarife = varsayilan_tarife.copy()
     st.session_state.son_secim = gelir_turu
 
-# Hafızadaki matrah ve vergi değerleri
+# Hafızadaki matrah ve sayaç değerleri
 if "matrah_degeri" not in st.session_state:
     st.session_state.matrah_degeri = 500000.0
-if "hesaplanan_vergi" not in st.session_state:
-    st.session_state.hesaplanan_vergi = 0.0
-if "hesaplanan_efektif" not in st.session_state:
-    st.session_state.hesaplanan_efektif = 0.0
-if "kutu_anahtari" not in st.session_state:
-    st.session_state.kutu_anahtari = 0
+if "kutu_sayaci" not in st.session_state:
+    st.session_state.kutu_sayaci = 0
 
 # --- 1. BÖLÜM: MATRAH GİRİŞİ VE HESAPLAMA ---
 st.subheader("1. Vergi Hesaplama Paneli")
 
-# Mevcut değeri Türkçe formatta string'e dönüştürüyoruz
+# Mevcut değeri Türkçe para formatına dönüştürüp hazırlıyoruz
 varsayilan_metin = f"{st.session_state.matrah_degeri:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-# 🔄 KESİN ÇÖZÜM: Dinamik element yenileme alanı (st.empty)
-# Bu alan, her hesapla butonuna basıldığında kutuyu yok edip içindeki yazıyı formatlı haliyle yeniden çizer.
-kutu_alani = st.empty()
+# 🔄 BUTONSUZ VE ANINDA ENTER TETİKLEMELİ AKILLI GİRİŞ KUTUSU
+# Kullanıcı kutuda bir metin değiştirip ENTER tuşuna bastığı an bu fonksiyon otomatik çalışır
+def matrah_guncellendi():
+    giriş_metni = st.session_state[f"temp_input_{st.session_state.kutu_sayaci}"]
+    try:
+        # Metindeki Türkçe nokta ve virgülleri temizleyip float sayıya çeviriyoruz
+        clean_val = giriş_metni.replace(".", "").replace(",", ".")
+        taxinc_val = float(clean_val)
+        st.session_state.matrah_degeri = taxinc_val
+    except ValueError:
+        pass
+    # Kutunun kimliğini (ID) değiştirerek tarayıcıyı biçimlendirilmiş yeni sayıyı göstermeye zorluyoruz
+    st.session_state.kutu_sayaci += 1
 
-user_text = kutu_alani.text_input(
+# Kullanıcının metin yazdığı asıl kutu
+user_text = st.text_input(
     "Hesaplanacak Vergi Matrahı (TL):",
     value=varsayilan_metin,
-    key=f"matrah_input_{st.session_state.kutu_anahtari}",
-    help="Sayıyı düz veya noktalı yazabilirsiniz. Hesapla butonuna bastığınızda otomatik formatlanacaktır."
+    key=f"temp_input_{st.session_state.kutu_sayaci}",
+    on_change=matrah_guncellendi,
+    help="Değeri yazıp klavyeden ENTER tuşuna basınız. Hesaplama anında yapılacak ve noktalar eklenecektir."
 )
 
-# Hesaplama ve Formatlama Butonu
-if st.button("HESAPLA", type="secondary"):
-    try:
-        # Girdiyi temizle
-        clean_val = user_text.replace(".", "").replace(",", ".")
-        taxinc = float(clean_val)
-        st.session_state.matrah_degeri = taxinc
-        
-        # Algoritma Hesaplaması
-        tarife_list = st.session_state.tarife
-        if taxinc > tarife_list[0]["sinir"]:
-            tax = tarife_list[0]["sinir"] * (tarife_list[0]["oran"] / 100)
-        else:
-            tax = taxinc * (tarife_list[0]["oran"] / 100)
+# Hesaplama için güncel matrahı alıyoruz
+taxinc = st.session_state.matrah_degeri
+tarife_list = st.session_state.tarife
 
-        for i in range(1, len(tarife_list)):
-            prev_limit = tarife_list[i-1]["sinir"]
-            current_limit = tarife_list[i]["sinir"]
-            current_rate = tarife_list[i]["oran"] / 100
-            
-            if taxinc > prev_limit:
-                usable_matrah = min(taxinc, current_limit) - prev_limit
-                tax += usable_matrah * current_rate
-            else:
-                break
-        
-        st.session_state.hesaplanan_vergi = tax
-        st.session_state.hesaplanan_efektif = (tax / taxinc) * 100 if taxinc > 0 else 0
-        
-        # 🔄 Kutunun ID'sini değiştirerek tarayıcıyı eski (düz) girdiyi unutmaya ve yeni (noktalı) değeri çizmeye zorluyoruz.
-        st.session_state.kutu_anahtari += 1
-        st.rerun()
-        
-    except ValueError:
-        st.error("Lütfen geçerli bir matrah tutarı giriniz!")
+# Doğru Kademeli Matematiksel Hesaplama Algoritması
+if taxinc > tarife_list[0]["sinir"]:
+    tax = tarife_list[0]["sinir"] * (tarife_list[0]["oran"] / 100)
+else:
+    tax = taxinc * (tarife_list[0]["oran"] / 100)
 
-# Çıktıları hazırlama
-sonuc_formatli = f"{st.session_state.hesaplanan_vergi:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-efektif_formatli = f"{st.session_state.hesaplanan_efektif:.2f}".replace(".", ",")
+for i in range(1, len(tarife_list)):
+    prev_limit = tarife_list[i-1]["sinir"]
+    current_limit = tarife_list[i]["sinir"]
+    current_rate = tarife_list[i]["oran"] / 100
+    
+    if taxinc > prev_limit:
+        usable_matrah = min(taxinc, current_limit) - prev_limit
+        tax += usable_matrah * current_rate
+    else:
+        break
 
-# Sonuç Göstergeleri
+efektif_oran = (tax / taxinc) * 100 if taxinc > 0 else 0
+
+# Sonuçları Türkçe para formatına çevirme
+sonuc_formatli = f"{tax:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+efektif_formatli = f"{efektif_oran:.2f}".replace(".", ",")
+
+# Sonuç Göstergeleri (Kullanıcı Enter'a bastığı an burası kendiliğinden güncellenir)
 col1, col2 = st.columns(2)
 with col1:
     st.metric(label="Ödenecek Toplam Vergi", value=f"{sonuc_formatli} TL")
@@ -134,7 +129,7 @@ for i, d in enumerate(st.session_state.tarife):
 
 st.write("")
 
-# Yeni Dilim Ekleme Alanındaki Sayı Girişi
+# Yeni Dilim Ekleme Alanı (Enter odaklı forma uyarlandı)
 if "raw_yeni_sinir" not in st.session_state:
     st.session_state.raw_yeni_sinir = 190000.0
 
