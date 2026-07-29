@@ -4,14 +4,12 @@ import streamlit as st
 st.set_page_config(page_title="Vergi Hesaplayıcı 2026", layout="centered")
 
 # --- RESMİ VE KURUMSAL BİLGİ PANELİ ---
-# Müdürlük yazısı bu kutudan çıkarılarak ana başlığın üstüne taşındı
 st.info(
     "🏛️ **T.C. HAZİNE VE MALİYE BAKANLIĞI**\n\n"
     "193 Sayılı Gelir Vergisi Kanunu Madde 103 — 2026 Takvim Yılı Resmi Tarifesi"
 )
 
-# --- 🚀 GÜNCELLENDİ: BAŞLIK VE MÜDÜRLÜK HİZALAMA ALANI ---
-# Müdürlük yazısı ana başlığın hemen üstüne, daha küçük karakterle eklendi
+# --- BAŞLIK VE MÜDÜRLÜK HİZALAMA ALANI ---
 st.caption("GELİR POLİTİKALARI İZLEME VE DEĞERLENDİRME MÜDÜRLÜĞÜ")
 st.title("Gelir Vergisi Hesaplayıcı")
 st.write("")
@@ -49,23 +47,29 @@ if "son_secim" not in st.session_state or st.session_state.son_secim != gelir_tu
 # --- 1. BÖLÜM: MATRAH GİRİŞİ VE HESAPLAMA ---
 st.subheader("1. Vergi Hesaplama Paneli")
 
-# TÜRKÇE FORMATLI ANA MATRAH GİRİŞ SİSTEMİ
+# 🔄 KESİN ÇÖZÜM: 'ENTER' VE ONAY TABANLI AKILLI TÜRKÇE GİRİŞ MASKESİ
 if "raw_input" not in st.session_state:
-    st.session_state.raw_input = "500000"
+    st.session_state.raw_input = 500000.0
 
+# İlk döküm için mevcut değeri Türkçe formatına çeviriyoruz
+varsayilan_gosterim = f"{st.session_state.raw_input:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+# Değer girildikten sonra Enter'a basılmasını şart koşan ve donmayı engelleyen parametre eklendi
 user_text = st.text_input(
     "Hesaplanacak Vergi Matrahı (TL):",
-    value=f"{float(st.session_state.raw_input.replace('.', '').replace(',', '.')):,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+    value=varsayilan_gosterim,
     key="matrah_text_input",
-    help="Sayıları düz yazabilirsiniz, sistem otomatik olarak nokta ve virgül ekleyecektir."
+    on_change=None,
+    help="Değeri yazdıktan sonra binlik ayıraçların oluşması için klavyeden ENTER tuşuna basınız veya boşluğa dokunup onaylayınız."
 )
 
+# Metni temizleyerek sayısal değere dönüştürme ve hafızayı güncelleme
 try:
     clean_val = user_text.replace(".", "").replace(",", ".")
     taxinc = float(clean_val)
-    st.session_state.raw_input = clean_val
+    st.session_state.raw_input = taxinc
 except ValueError:
-    taxinc = 0.0
+    taxinc = st.session_state.raw_input
 
 tarife_list = st.session_state.tarife
 
@@ -88,7 +92,7 @@ for i in range(1, len(tarife_list)):
 
 efektif_oran = (tax / taxinc) * 100 if taxinc > 0 else 0
 
-# Türk finans standartlarında çıktı formatlama
+# Sonuç dökümleri için Türk standartları formatlaması
 sonuc_formatli = f"{tax:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 efektif_formatli = f"{efektif_oran:.2f}".replace(".", ",")
 
@@ -117,7 +121,7 @@ st.write("")
 
 # Yeni Dilim Ekleme Alanındaki Sayı Girişi
 if "raw_yeni_sinir" not in st.session_state:
-    st.session_state.raw_yeni_sinir = "190000"
+    st.session_state.raw_yeni_sinir = 190000.0
 
 with st.form("yeni_dilim", clear_on_submit=True):
     st.write("**Mevcut Tarifeye Yeni Bir Kademe Ekle:**")
@@ -125,16 +129,14 @@ with st.form("yeni_dilim", clear_on_submit=True):
     with c1:
         yeni_oran = st.number_input("Vergi Oranı (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0)
     with c2:
-        yeni_sinir_text = st.text_input(
-            "Dilim Üst Sınırı (TL)", 
-            value=f"{float(st.session_state.raw_yeni_sinir.replace('.', '').replace(',', '.')):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        )
+        yeni_sinir_formatli = f"{st.session_state.raw_yeni_sinir:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        yeni_sinir_text = st.text_input("Dilim Üst Sınırı (TL)", value=yeni_sinir_formatli)
     
     if st.form_submit_button("Listeye Ekle"):
         try:
             clean_yeni_sinir = yeni_sinir_text.replace(".", "").replace(",", ".")
             yeni_sinir = float(clean_yeni_sinir)
-            st.session_state.raw_yeni_sinir = clean_yeni_sinir
+            st.session_state.raw_yeni_sinir = yeni_sinir
             
             if yeni_oran >= 0 and yeni_sinir > 0:
                 st.session_state.tarife.append({"oran": yeni_oran, "sinir": yeni_sinir})
